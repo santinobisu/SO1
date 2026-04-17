@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-
+#include <pthread.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -10,24 +10,36 @@
 
 typedef struct _tablaHash
 {
-    char *arr;
+    char **arr;
     int tam;
 } tablaHash;
 
+typedef struct _args
+{
+    int csock;
+    tablaHash *tabla;
+} args;
+
+pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
 tablaHash *crear_tablaHash()
 {
     tablaHash *t = malloc(sizeof(tablaHash));
     t->tam = 11;
-    t->arr = malloc(sizeof(char) * t->tam);
+    t->arr = malloc(sizeof(char*) * t->tam);
     for (int i = 0; i < t->tam; i++)
-        t->arr[i] = '\n';
+    {
+        t->arr[i] = malloc(sizeof(char)*1);
+        t->arr[i][0] = '\n';
+    }
+        
     return t;
 }
 
 void eliminar_tablaHash(tablaHash *t)
 {
-    free(t->arr);
+    for (int i = 0; i < t->tam; i++)
+        free(t->arr[i]);
     free(t);
 }
 
@@ -36,26 +48,22 @@ int hashearValor(char *k, tablaHash *t)
     return (int) k[0] % t->tam;
 }
 
-void insertar_v_tablaHash(tablaHash *t, char *k, char v)
+void insertar_v_tablaHash(tablaHash *t, char *k, char *v)
 {
     unsigned idx = hashearValor(k, t);
-    if (t->arr[idx] == '\n')
-        t->arr[idx] = v;
-    else
-    {
-        while (t->arr[++idx] != '\n');
-        t->arr[idx] = v;
-    }
+    free(t->arr[idx]);
+    t->arr[idx] = strdup(v);
 }
 
 void eliminar_v_tablaHash(tablaHash *t, char *k)
 {
     unsigned idx = hashearValor(k,t);
-    t->arr[idx] = '\n';
+    free(t->arr[idx]);
+    t->arr[idx] = strdup("\n");
 }
 
-char buscar_v_tablaHash(tablaHash *t, char *k)
-{
+char *buscar_v_tablaHash(tablaHash *t, char *k)
+{   
     unsigned idx = hashearValor(k,t);
     return t->arr[idx];
 }
@@ -89,24 +97,30 @@ int fd_readline(int fd, char *buf)
 	return i;
 }
 
-void handle_conn(int csock, tablaHash *tabla)
+void handle_conn(args *argumentos)
 {
 	char buf[200];
 	int rc;
 
 	while (1) {
 		/* Atendemos pedidos, uno por linea */
-		rc = fd_readline(csock, buf);
+		rc = fd_readline(argumentos->csock, buf);
 		if (rc < 0)
-			quit("read... raro");
+        {
+            free(argumentos);
+            quit("read... raro");
+        }
+			
 
 		if (rc == 0) {
 			/* linea vacia, se cerró la conexión */
-			close(csock);
+			close(argumentos->csock);
+            free(argumentos);
 			return;
 		}
 
         //strtok y demas
+        pthread_mutex_lock(&lock);
         char *mensaje= strtok(buf, " ");
         char *comando = strcpy(comando, mensaje);
         if (strcmp(comando, "PUT") == 0)
@@ -115,11 +129,11 @@ void handle_conn(int csock, tablaHash *tabla)
             if (key == NULL) printf("EINVAL\n");
             else
             {
-                mensaje = strtok(NULL, " ");
+                mensaje = strtok(NULL, " " );
                 if(mensaje == NULL) printf ("EINVAL\n");
                 else 
                 {
-                    insertar_v_tablaHash(tabla, key, mensaje);
+                    insertar_v_tablaHash(argumentos->tabla, key, mensaje);
                     printf("OK\n");
                 }
                 
@@ -131,7 +145,7 @@ void handle_conn(int csock, tablaHash *tabla)
             if (mensaje == NULL) printf("EINVAL\n");
             else
             {
-                eliminar_v_tablaHash(tabla, mensaje);
+                eliminar_v_tablaHash(argumentos->tabla, mensaje);
                 printf("OK\n");
             }  
         }
@@ -141,11 +155,11 @@ void handle_conn(int csock, tablaHash *tabla)
             if (mensaje == NULL) printf("EINVAL\n");
             else
             {
-               char c = buscar_v_tablaHash(tabla, mensaje);
-               if (c == '\n') printf("NOTFOUND\n");
+               char* c = buscar_v_tablaHash(argumentos->tabla, mensaje);
+               if (c[0] == '\n') printf("NOTFOUND\n");
                else 
                { 
-                   printf("%c\n", c);
+                   printf("%s\n", c);
                    printf("OK\n");
                }
             }
@@ -155,24 +169,29 @@ void handle_conn(int csock, tablaHash *tabla)
         {
             printf("EINVAL\n");
         }
-        
+        pthread_mutex_unlock(&lock);
 	}
 }
 
 void wait_for_clients(int lsock, tablaHash *tabla)
 {
 	int csock;
-
+    pthread_t hilo1;
+    
 	/* Esperamos una conexión, no nos interesa de donde viene */
 	csock = accept(lsock, NULL, NULL);
 	if (csock < 0)
-		quit("accept");
+    quit("accept");
 
-	/* Atendemos al cliente */
-	handle_conn(csock, tabla);
+    args *argumentos = malloc(sizeof(args));
+
+    argumentos->csock = csock;
+    argumentos->tabla = tabla;	/* Atendemos al clciente */
+    pthread_create(&hilo1, NULL, handle_conn, argumentos);
 
 	/* Volvemos a esperar conexiones */
 	wait_for_clients(lsock, tabla);
+    pthread_join(&hilo1, NULL);
 }
 
 int main (){
