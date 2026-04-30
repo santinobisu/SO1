@@ -10,17 +10,18 @@
 #include <sys/epoll.h>
 
 #define MAX_EVENTS 4
+
+
+struct epoll_event ev, events[MAX_EVENTS];
+int epollfd;
+
 typedef struct _tablaHash
 {
     char **arr;
     int tam;
 } tablaHash;
 
-typedef struct _args
-{
-    int csock;
-    tablaHash *tabla;
-} args;
+tablaHash *tabla;
 
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
@@ -70,6 +71,7 @@ char *buscar_v_tablaHash(tablaHash *t, char *k)
     return t->arr[idx];
 }
 
+
 void quit(char *s)
 {
 	perror(s);
@@ -98,46 +100,51 @@ int fd_readline(int fd, char *buf)
 	return i;
 }
 
-void handle_conn(args *argumentos)
+void handle_conn(int csock)
 {
 	char buf[200];
 	int rc;
 
 	while (1) {
 		/* Atendemos pedidos, uno por linea */
-		rc = fd_readline(argumentos->csock, buf);
-		if (rc < 0)
-        {
-            free(argumentos);
-            quit("read... raro");
-        }
-			
+
+		rc = fd_readline(csock, buf);
+
+
+		if (rc < 0) quit("read... raro");
 
 		if (rc == 0) {
 			/* linea vacia, se cerró la conexión */
-			close(argumentos->csock);
-            free(argumentos);
+			close(csock);
 			return;
 		}
 
         //strtok y demas
         pthread_mutex_lock(&lock);
+
         char *mensaje= strtok(buf, " ");
-        char *comando = strcpy(comando, mensaje);
+
+        char *comando;
+        comando = strdup(mensaje);
+
         if (strcmp(comando, "PUT") == 0)
         {
+
             char *key = strtok(NULL, " ");
+
             if (key == NULL) printf("EINVAL\n");
             else
             {
+
                 mensaje = strtok(NULL, " " );
+
                 if(mensaje == NULL) printf ("EINVAL\n");
                 else 
                 {
-                    insertar_v_tablaHash(argumentos->tabla, key, mensaje);
+                    insertar_v_tablaHash(tabla, key, mensaje);
                     printf("OK\n");
                 }
-                
+                free(comando);
             }
         }
         else if (strcmp(comando, "DEL") == 0)
@@ -146,9 +153,10 @@ void handle_conn(args *argumentos)
             if (mensaje == NULL) printf("EINVAL\n");
             else
             {
-                eliminar_v_tablaHash(argumentos->tabla, mensaje);
+                eliminar_v_tablaHash(tabla, mensaje);
                 printf("OK\n");
-            }  
+            } 
+            free(comando);
         }
         else if (strcmp(comando, "GET") == 0)
         {
@@ -156,7 +164,7 @@ void handle_conn(args *argumentos)
             if (mensaje == NULL) printf("EINVAL\n");
             else
             {
-               char* c = buscar_v_tablaHash(argumentos->tabla, mensaje);
+               char* c = buscar_v_tablaHash(tabla, mensaje);
                if (c[0] == '\n') printf("NOTFOUND\n");
                else 
                { 
@@ -164,82 +172,45 @@ void handle_conn(args *argumentos)
                    printf("OK\n");
                }
             }
-            
+            free(comando);
         }
         else
         {
             printf("EINVAL\n");
+            free(comando);
         }
         pthread_mutex_unlock(&lock);
 	}
 }
 
-void wait_for_clients(int lsock, tablaHash *tabla, int epollfd, struct epoll_event *events, struct epoll_event *ev)
+void wait_for_clients(void *lsockarg)
 {
-	int csock;
-    int nfds;
+	int csock, nfds;
+    int *lsock = lsockarg;
 
     for (;;) {
-    nfds = epoll_wait(epollfd, events, MAX_EVENTS, -1);
-    if (nfds == -1) {
-        perror("epoll_wait");
-        exit(EXIT_FAILURE);
+                nfds = epoll_wait(epollfd, events, MAX_EVENTS, -1);
+                if (nfds == -1) quit("epoll_wait");
+
+                for (int n = 0; n < nfds; ++n) {
+                    if (events[n].data.fd == *lsock) {
+                        csock = accept(*lsock, NULL, NULL);
+                        if (csock == -1) quit("accept");
+                        ev.events = EPOLLIN | EPOLLONESHOT;
+                        ev.data.fd = csock;
+                        if (epoll_ctl(epollfd, EPOLL_CTL_ADD, csock, &ev) == -1) quit("epoll_ctl: csock");
+                        ev.data.fd = *lsock;
+                        if (epoll_ctl(epollfd, EPOLL_CTL_MOD, *lsock, &ev) == -1) quit("epoll_ctl: lsock");
+                    } else handle_conn(events[n].data.fd);
+                }
     }
-
-    for (int n = 0; n < nfds; ++n) {
-        if (events[n].data.fd == lsock) {
-            csock = accept(lsock, NULL, NULL);
-            if (csock == -1) {
-                perror("accept");
-                exit(EXIT_FAILURE);
-            }
-            setnonblocking(csock);
-            ev->events = EPOLLIN | EPOLLET;
-            ev->data.fd = csock;
-            if (epoll_ctl(epollfd, EPOLL_CTL_ADD, csock,ev) == -1) {
-                perror("epoll_ctl: csock");
-                exit(EXIT_FAILURE);
-            }
-        } else {
-            do_use_fd(events[n].data.fd);
-        }
-    }
-}
-    
-	/* Esperamos una conexión, no nos interesa de donde viene */
-
-    args *argumentos = malloc(sizeof(args));
-
-    argumentos->csock = csock;
-    argumentos->tabla = tabla;	/* Atendemos al clciente */
-    pthread_create(&hilo1, NULL, handle_conn, argumentos);
-
-	/* Volvemos a esperar conexiones */
-    pthread_join(&hilo1, NULL);
-}
-
-int crear_epoll(struct epoll_event *ev, int lsock)
-{
-    epollfd = epoll_create1(0);
-    if (epollfd == -1) {
-    perror("epoll_create1");
-    exit(EXIT_FAILURE);
-    }
-
-    ev->events = EPOLLIN;
-    ev->data.fd = lsock;
-    if (epoll_ctl(epollfd, EPOLL_CTL_ADD, lsock, ev) == -1) {
-    perror("epoll_ctl: lsock");
-    exit(EXIT_FAILURE);
-    }
-
-    return epollfd;
 }
 
 int main (){
-    
-    tablaHash *tabla = crear_tablaHash();
-    struct epoll_event ev, events[MAX_EVENTS];    
+
+    pthread_t h1, h2, h3, h4;
+    tabla = crear_tablaHash();
+
     struct sockaddr_in sa;
 	int lsock;
 	int rc;
@@ -262,62 +233,29 @@ int main (){
 	if (rc < 0)
 		quit("listen");
 
-    int epollfd = crear_epoll(&ev, lsock);
+    int csock;
+    epollfd = epoll_create1(0);
+    if (epollfd == -1) quit("epoll_create1");
+    ev.events = EPOLLIN;
+    ev.data.fd = lsock;
+
+    if (epoll_ctl(epollfd, EPOLL_CTL_ADD, lsock, &ev) == -1) quit("epoll_ctl: listen_sock");
+
+    // crear 4 hilos y pasarle wait for clients
+    pthread_create(&h1, NULL, wait_for_clients, &lsock);
+    pthread_create(&h2, NULL, wait_for_clients, &lsock);
+    pthread_create(&h3, NULL, wait_for_clients, &lsock);
+    pthread_create(&h4, NULL, wait_for_clients, &lsock);
+
+    pthread_join(h1, NULL);
+    pthread_join(h2, NULL);
+    pthread_join(h3, NULL);
+    pthread_join(h4, NULL);
 
 	/* Esperamos una conexión, no nos interesa de donde viene */
-    wait_for_clients(lsock, tabla, epollfd, events, &ev);
 
     close(lsock);
-    pthread_mutex_destroy(&lock);
+
     eliminar_tablaHash(tabla);
-
     return 0;
-}
-
-struct epoll_event ev, events[MAX_EVENTS];
-int lsock, conn_sock, nfds, epollfd;
-
- Code to set up listening socket, 'lsock',
-    (socket(), bind(), listen()) omitted. 
-
-epollfd = epoll_create1(0);
-if (epollfd == -1) {
-    perror("epoll_create1");
-    exit(EXIT_FAILURE);
-}
-
-ev.events = EPOLLIN;
-ev.data.fd = lsock;
-if (epoll_ctl(epollfd, EPOLL_CTL_ADD, lsock, &ev) == -1) {
-    perror("epoll_ctl: lsock");
-    exit(EXIT_FAILURE);
-}
-
-for (;;) {
-    nfds = epoll_wait(epollfd, events, MAX_EVENTS, -1);
-    if (nfds == -1) {
-        perror("epoll_wait");
-        exit(EXIT_FAILURE);
-    }
-
-    for (n = 0; n < nfds; ++n) {
-        if (events[n].data.fd == lsock) {
-            conn_sock = accept(lsock,
-                                (struct sockaddr *) &addr, &addrlen);
-            if (conn_sock == -1) {
-                perror("accept");
-                exit(EXIT_FAILURE);
-            }
-            setnonblocking(conn_sock);
-            ev.events = EPOLLIN | EPOLLET;
-            ev.data.fd = conn_sock;
-            if (epoll_ctl(epollfd, EPOLL_CTL_ADD, conn_sock,
-                        &ev) == -1) {
-                perror("epoll_ctl: conn_sock");
-                exit(EXIT_FAILURE);
-            }
-        } else {
-            do_use_fd(events[n].data.fd);
-        }
-    }
 }

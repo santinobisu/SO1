@@ -226,7 +226,7 @@ int main (){
     wait_for_clients(lsock, tabla);
 
     close(lsock);
-
+    pthread_mutex_destroy(&lock);
     eliminar_tablaHash(tabla);
     return 0;
 }
