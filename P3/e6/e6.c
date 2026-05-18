@@ -24,7 +24,6 @@ pthread_mutex_t lock_barber = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t lock_cliente = PTHREAD_MUTEX_INITIALIZER;
 Queue *fila_clientes;
 pthread_barrier_t barrera;
-sem_t semaforo_cola;
 
 void clientef()
 {
@@ -123,7 +122,6 @@ int main()
     pthread_t barbero, clientes[N_CLIENTES];
 
     pthread_barrier_init(&barrera, NULL, 2);
-    sem_init(&semaforo_cola, 0, 0);
     int i;
     pthread_create(&barbero, NULL, barberof, NULL);
     for (i = 0; i < N_CLIENTES; i++)
