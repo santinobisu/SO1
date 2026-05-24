@@ -1,12 +1,14 @@
+/*
+Ej. 4. ¿Puede fallar la siguiente aserci´on (wr y rd corren en un thread cada uno)? Explique. Si puede
+fallar, arregle el programa.
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <pthread.h>
 #include <assert.h>
 
-/* Ej. 4. ¿Puede fallar la siguiente aserci´on (wr y rd corren en un thread cada uno)? Explique. Si puede
-fallar, arregle el programa.
- */
 
 volatile int x = 0;
 volatile int y = 0;

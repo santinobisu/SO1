@@ -1,10 +1,12 @@
-/* Ej. 1. Corra en una terminal el comando: echo "$$"
+/* 
+Ej. 1. Corra en una terminal el comando: echo "$$"
 ¿Que informacion recibe?
 Investigue los comandos:
 env
 ps
 tree
-strace */
+strace 
+*/
 
 // El comando echo "$$" muestra el PID de la instancia de la shell donde se corre
 // El comando env muestra informacion sobre el area de trabajo () actual

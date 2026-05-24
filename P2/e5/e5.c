@@ -1,3 +1,8 @@
+/* 
+Ej. 5. Implemente el algoritmo de Peterson para solucionar el problema del jard´ın ornamental. Tenga
+en cuenta lo discutido sobre barreras de memoria. 
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>

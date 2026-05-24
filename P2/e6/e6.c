@@ -1,16 +1,22 @@
-/* Ej. 6. Considere el problema del jard´ın ornamental en un sistema con un unico procesador.
+/* 
+Ej. 6. Considere el problema del jard´ın ornamental en un sistema con un unico procesador.
+
 a) ¿Sigue habiendo un problema de concurrencia? Justifique. 
-No, pues el algoritmo de Petersen asegura que (en un sistema con un unico procesador, y con dos hilos) no haya problemas de concurrencia. 
+No, pues el algoritmo de Petersen asegura que (en un sistema con un unico procesador, y con dos hilos) no haya problemas de concurrencia.
+
 b) Si implementa el algoritmo de Peterson, ¿son necesarias las barreras de memoria?
 No, al tener un solo procesador no es necesario.
+
 c) Si el incremento se hace con la instruccion incl de x86, ¿hay problema? Puede aprovechar la
 siguiente funcion:
 static inline void incl(int *p) {
 asm("incl %0" : "+m"(*p) : : "memory");
 }
 No, no sigue habiendo un problema de concurrencia pues la instrucción es atómica en asm.
+
 d) ¿Qu´e pasa con la implementacion con incl al tener mas de un procesador?
 Deja de funcionar, debido al store buffering que ocurre en los nucleos.
+
 e) Repita el experimento con esta versi´on de incl:
 static inline void incl(int *p) {
 asm("lock; incl %0" : "+m"(*p) : : "memory");

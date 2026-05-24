@@ -1,3 +1,10 @@
+/* 
+Ej. 17 (Algoritmo de la Panader´ıa, Lamport). Implemente el algoritmo de la panader´ıa de Lamport
+para el problema del jard´ın ornamental. Compare esta soluci´on con las vistas anteriormente. En particular,
+compare el uso de memoria. Tambi´en, considere crear una librer´ıa que implemente el algoritmo de Lamport:
+¿hay alg´un problema?
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>

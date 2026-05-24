@@ -5,16 +5,25 @@
 
 /* Ej. 2. Conteste las siguientes preguntas. Puede ser ´util usar strace para monitorear las llamadas a
 sistema de un proceso, o top para ver la tabla de procesos del sistema.
+
 a) Si se cierra el file descriptor de la salida est´andar (1) ¿qu´e pasa al escribir al mismo?
+
 b) Si se cierra el file descriptor de la entrada est´andar (0) ¿qu´e pasa al intentar leer del mismo?
+
 c) Si un file descriptor se duplica con dup() ¿qu´e pasa al cerrar una de las copias?
+
 d) Al hacer fork(), ¿c´omo cambia el valor de getpid()? ¿Y al hacer exec()?
+
 e) Con fork(), cree dos procesos y haga que el hijo termine (con exit() o retornando del main) y que
 el padre duerma indefinidamente sin hacer wait(). ¿C´omo aparece el hijo en la tabla de procesos?
 ¿Por qu´e sigue existiendo?
+
 f) Al hacer un malloc de 1GB ¿aumenta el uso de memoria de un proceso? Explique.
+
 g) ¿Qu´e pasa con el uso de memoria de un proceso al realizar fork()? ¿Y exec()?
+
 h) ¿Qu´e pasa con los file descriptor de un proceso al hacer fork()? ¿Y exec()?
+
 i) El comando de cambio de directorio cd suele ser un built-in de la shell. ¿Puede implementarse
 mediante un programa al igual que, ej., ls? */
 

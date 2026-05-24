@@ -1,5 +1,7 @@
-/* Implementar un programa con dos threads que suman los elementos de un arreglo compartido
-usando pthread mutex t para evitar race conditions. */
+/* 
+Ej. 10. Implementar un programa con dos threads que suman los elementos de un arreglo compartido
+usando pthread mutex t para evitar race conditions.
+*/
 
 #include <stdio.h>
 #include <stdlib.h>

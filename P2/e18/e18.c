@@ -1,3 +1,9 @@
+/* 
+Ej. 18 (Mutexes Recursivos). Implemente una librer´ıa de mutexes recursivos. Puede asumir que
+cada thread cuenta con un identificador ´unico (e.g. el devuelto por gettid()), pero no debe asumir una
+cantidad fija ni m´axima de los mismos.
+*/
+
 // recursive_mutex.c
 #include "e18.h"
 #include <assert.h>

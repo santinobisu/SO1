@@ -1,3 +1,9 @@
+/* 
+Ej. 8. En la siguiente implementaci´on del jard´ın ornamental (asumiendo dos molinetes), agregue
+estrat´egicamente algunos sleep() para obtener el m´ınimo valor posible de visitantes. Puede usar
+condicionales.
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>

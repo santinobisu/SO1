@@ -1,3 +1,22 @@
+/*
+Ej. 15 (Mini memcached). Implemente un servidor que provea un key-value store a sus clientes. El
+servidor debe esperar conexiones en el puerto 3942 TCP (AF_INET, SOCK_STREAM) y atender los pedidos
+de cada cliente. Un pedido es siempre una secuencia de palabras separadas por espacios, terminado por
+un caracter de nueva l´ınea (’\n’). La primer palabra es el comando y el resto (alguna cantidad) son los
+argumentos al comando. Ninguna palabra contiene espacios ni caracteres no alfanum´ericos. Los pedidos
+posibles son:
+
+PUT k v: introduce al store el valor v bajo la clave k. El valor viejo para k, si exist´ıa, es pisado. El
+servidor debe responder con OK.
+DEL k: Borra el valor asociado a la clave k. El servidor debe responder con OK.
+GET k: Busca el valor asociado a la clave k. El servidor debe contestar con OK v si el valor es v, o
+con NOTFOUND si no hay valor asociado a k.
+
+Ante cualquier otro mensaje el servidor responde con EINVAL. Las respuestas del servidor siempre terminan
+con ’\n’. (El servidor puede probarse f´acilmente con netcat.) Por supuesto, deben soportarse conexiones
+simult´aneas de varios clientes. 
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>

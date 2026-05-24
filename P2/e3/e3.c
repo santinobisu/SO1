@@ -1,14 +1,14 @@
+/*
+Ej. 3. ¿Puede fallar la siguiente aserci´on? ¿Bajo qu´e condiciones? Explique. Si puede fallar, arregle el
+programa.
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <pthread.h>
 #include <assert.h>
 #include <stdatomic.h>
-
-/* Ej. 3. ¿Puede fallar la siguiente aserci´on? ¿Bajo qu´e condiciones? Explique. Si puede fallar, arregle el
-programa.
-
-} */
 
 atomic_int x = 0, y = 0, a = 0, b = 0;
 void * foo(void *arg) { x = 1; a = y; return NULL; }

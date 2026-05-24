@@ -1,9 +1,11 @@
+/*
+Ej. 9. Complete el codigo para capturar la señal al presionar Ctrl-C.
+*/
+
 #include <stdio.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <unistd.h>
-
-// Ej. 9. Complete el codigo para capturar la señal al presionar Ctrl-C.
 
 void INThandler(int);
 int main(void)

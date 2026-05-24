@@ -1,13 +1,15 @@
+/* 
+Ej. 8. El siguiente programa intenta corregir con gracia una divisi´on por cero, atrapando la se˜nal
+correspondiente (SIGFPE) y modificando el denominador de la divisi´on en ese caso.
+¿Qu´e pasa al correr el programa? ¿Por qu´e?
+*/
+
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
 #include <signal.h>
-
-
-/* Ej. 8. El siguiente programa intenta corregir con gracia una divisi´on por cero, atrapando la se˜nal
-correspondiente (SIGFPE) y modificando el denominador de la divisi´on en ese caso. */
 
 int denom = 0;
 void handler(int s) { printf("ouch!\n"); denom = 1; }

@@ -1,3 +1,7 @@
+/* 
+Ej. 12. Analice y explique el comportamiento del siguiente programa.
+*/
+
 #include <stdio.h>
 #include <unistd.h>
 #include <pthread.h>

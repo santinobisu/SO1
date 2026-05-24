@@ -10,6 +10,26 @@ se quedar´a esperando, con un tenedor en la mano, hasta que pueda tomar el otro
 tenedor, para luego empezar a comer. Una vez que un fil´osofo terminar de comer
 deja los tenedores sobre la mesa y piensa hasta que le vuelve a dar hambre, cuando
 repite el procedimiento.
+
+a) Este programa puede terminar en deadlock. Explique c´omo.
+
+b) Cansados de no comer los fil´osofos deciden pensar una soluci´on a su problema. Uno razona que esto
+no suceder´ıa si alguno de ellos fuese zurdo y tome primero el tenedor de su izquierda. Implemente
+esta soluci´on y explique por qu´e funciona.
+
+c) Otro fil´osofo piensa que tampoco tendr´ıan el problema si todos fuesen diestros pero s´olo intentasen
+comer a lo sumo N − 1 de ellos a la vez.
+Implemente esta soluci´on y explique por qu´e funciona. Para ello va a necesitar un sem´aforo de
+Dijkstra. Puede utilizar los POSIX Semaphores. En la cabecera semaphore.h puede encontrar los
+prototipos de las funciones necesarias:
+int sem_init(sem_t *sem, int pshared, unsigned int value);
+int sem_destroy(sem_t *sem);
+int sem_wait(sem_t *sem);
+int sem_post(sem_t *sem);
+
+d) Un fil´osofo, ya sufriendo secuelas del hambre, sugiere que los comensales suelten su tenedor derecho
+si encuentran que el izquierdo ya est´a tomado, posiblemente esperando un tiempo antes de reintentar
+tomarlo. Implemente esta variante e invest´ıguela. ¿Funciona? ¿Es eficiente? Cuantifique su respuesta.
 */
 
 #include <stdio.h>

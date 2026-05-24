@@ -1,3 +1,14 @@
+/*
+Ej. 16 (No-tan-mini memcached). Adapte su implementaci´on del ejercicio anterior para atender
+pedidos en simult´aneo, con una cantidad de threads definida est´aticamente (por ej. 4). El servidor
+debe seguir siendo correcto y tener la misma funcionalidad. Obviamente, los accesos y modificaciones
+a estructuras internas deben sincronizar para que no se corrompan. Adem´as, debe considerarse cu´ales
+threads manejan los eventos.
+
+Usar epoll() para manejar las conexiones. Las funciones strchr() y memchr() pueden ser ´utiles para el
+parseo. ¿Qu´e ventaja trae usarla?
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>

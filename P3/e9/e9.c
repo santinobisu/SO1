@@ -1,11 +1,15 @@
-/* 
-Ej. 6 (Problema del Barbero, Dijkstra). Una barber´ıa tiene una sala de espera con N sillas y
-un barbero. Si no hay clientes para atender, el barbero se pone a dormir. Si un cliente llega y todas
-las sillas est´an ocupadas, se va. Si el barbero est´a ocupado pero hay sillas disponibles, se sienta en
-una y espera a ser atendido. Si el barbero est´a dormido, despierta al barbero. El cliente y el barbero
-deben ejecutar concurrentemente las funciones me_cortan() y cortando() y al terminar los dos ejecutar
-concurrentemente pagando() y me_pagan().
-Escriba un programa que coordine el comportamiento del barbero y los clientes y expl´ıquelo. 
+/*
+Ej. 9 (Barreras). Una barrera para n threads tiene una ´unica operaci´on barrier_wait() que causa
+que los threads se pausen hasta que todos lleguen a la barrera. Son usadas, generalmente, para asegurar
+que las iteraciones de varios bucles en paralelo proceden a un mismo paso. Implemente una librer´ıa de
+barreras, exponiendo las funciones:
+
+void barrier_init(struct barrier *b, int n);
+void barrier_wait(struct barrier *b);
+
+Uselas para corregir el siguiente fragmento. La funci´on ´ calor() simula la transferencia de calor en un
+material, haciendo que cada elemento del array se “acerque” a sus vecinos, dejando el resultado de la
+transformaci´on en un nuevo array.
 */
 
 #include <pthread.h>
@@ -14,6 +18,7 @@ Escriba un programa que coordine el comportamiento del barbero y los clientes y 
 #include <unistd.h>
 #include <semaphore.h>
 #include "queue.h"
+#include "barrier.h"
 
 #define N_ASIENTOS 10
 #define N_CLIENTES 150
@@ -26,7 +31,7 @@ pthread_cond_t sillas_cond[N_ASIENTOS];
 pthread_mutex_t lock_barber = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t lock_cliente = PTHREAD_MUTEX_INITIALIZER;
 Queue *fila_clientes;
-pthread_barrier_t barrera;
+barrier barrera;
 
 void clientef()
 {
@@ -57,10 +62,10 @@ void clientef()
     pthread_cond_wait(&(sillas_cond[asiento_elegido]), &lock_cliente);
 
     me_cortan(asiento_elegido);
-    pthread_barrier_wait(&barrera);
+    barrier_wait(&barrera);
 
     pagando(asiento_elegido);
-    pthread_barrier_wait(&barrera);
+    barrier_wait(&barrera);
 
     sillas[asiento_elegido] = 0;
     
@@ -87,10 +92,10 @@ void barberof()
         pthread_cond_signal(&(sillas_cond[silla_a_atender]));
         
         cortando(silla_a_atender);
-        pthread_barrier_wait(&barrera);
+        barrier_wait(&barrera);
         
         me_pagan(silla_a_atender);
-        pthread_barrier_wait(&barrera);
+        barrier_wait(&barrera);
         
         asientos_ocupados--;
     }
@@ -121,7 +126,7 @@ void me_pagan(int silla_ocupada)
 int main()
 {
     fila_clientes = crear_cola();
-
+    barrier_init(&barrera, 2);
     pthread_t barbero, clientes[N_CLIENTES];
 
     pthread_barrier_init(&barrera, NULL, 2);

@@ -1,13 +1,15 @@
+/* 
+Ej. 10 (Signal Pong). Hacer un programa que tenga el siguiente comportamiento:
+Luego del fork, el padre env´ıa una se˜nal SIGUSR1 al hijo y entra en un loop infinito. El hijo espera en
+un loop infinito. Ambos (padre e hijo) cuando reciven una se˜nal SIGUSR1 responden lo mismo. (el padre
+al hijo y el hijo al padre). ¿Qu´e pasa si cambiamos los loops infinitos por pause()?. Usar las funciones
+signal() y sigaction(). 
+*/
+
 #include <stdio.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <unistd.h>
-
-/* Ej. 10 (Signal Pong). Hacer un programa que tenga el siguiente comportamiento:
-Luego del fork, el padre env´ıa una se˜nal SIGUSR1 al hijo y entra en un loop infinito. El hijo espera en
-un loop infinito. Ambos (padre e hijo) cuando reciven una se˜nal SIGUSR1 responden lo mismo. (el padre
-al hijo y el hijo al padre). ¿Qu´e pasa si cambiamos los loops infinitos por pause()?. Usar las funciones
-signal() y sigaction(). */
 
 __pid_t pid;
 
