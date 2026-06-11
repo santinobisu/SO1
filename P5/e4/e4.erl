@@ -19,7 +19,7 @@
 
 server() ->
     {ok, ListenSocket} = gen_tcp:listen(8000, [{reuseaddr, true}]),
-    wait_connect(ListenSocket, 0).
+    spawn (fun () -> wait_connect (ListenSocket, 0) end).
 
 wait_connect(ListenSocket, N) ->
     {ok, Socket} = gen_tcp:accept(ListenSocket),
@@ -29,6 +29,15 @@ wait_connect(ListenSocket, N) ->
 get_request(Socket) ->
     io:fwrite("Esperando mensajes de ~p~n", [Socket]),
     receive
-        _X -> ok,
-            get_request(Socket)
+        {_,PID,X} -> ok,
+            if X == "NUEVO\n" ->
+                Unique = erlang:unique_integer(),
+                io:fwrite("Enviado entero ~p al proceso ~p~n", [Unique, PID]),
+                get_request(Socket);
+            X == "CHAU\n" ->
+                 io:fwrite("Conexion con ~p cerrada~n", [PID]),
+                 gen_tcp:close(Socket);
+            true ->
+                get_request(Socket)
+            end
     end.
